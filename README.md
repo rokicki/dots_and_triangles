@@ -1,13 +1,19 @@
+#### Dots and Triangles
+
 Dots and Triangles is a variation of the classic game
-Dots and Boxes, except instead of making boxes on a square grid
+[Dots and Boxes](https://en.wikipedia.org/wiki/Dots_and_Boxes),
+except instead of making boxes on a square grid
 you make triangles on a triangular grid.  Other than this the
 game and its strategy remains much the same.
 
 Commonly dismissed as a children's game, Dots and Boxes (and
 this variant) are actually significant and complex games, worthy
 of study.  One of the country's leading mathematicians,
-Elwyn Berlekamp (who sadly died just two months ago) wrote a
-deep and popular book on the game, and the game is often played
+[Elwyn Berlekamp](https://en.wikipedia.org/wiki/Elwyn_Berlekamp)
+(who sadly died just two months ago) wrote a
+[deep and popular
+book](https://www.amazon.com/Dots-Boxes-Game-Elwyn-Berlekamp/dp/1568811292)
+on the game, and the game is often played
 at some mathematics conferences between top mathemticians.
 
 Before trying this as a
@@ -56,6 +62,8 @@ effective against almost all players.  But once you master the
 double cross strategy, there are many other levels of depth and
 strategy to this game (usually on larger boards), including some
 surprising mathematics.  Berlekamp's book is well worth the read.
+
+#### Solving the Dots and Triangles Problem
 
 Now on to coding.  This is what's known as an impartial game,
 meaning the same moves are available to both players.  This
@@ -127,6 +135,8 @@ having the labels of who owns what triangle, or even the
 counts of how many triangles are owned by each player, will
 allow us to make the code faster.
 
+#### Data Structures and Details
+
 How can we easily represent the board?  If we ignore the
 labels of already created triangles, the only information is
 whether a particular edge has been marked or not.  We could
@@ -141,6 +151,10 @@ like
 To set bit b in an integer i, you do this:
 
     i |= 1 << b
+
+Using integers as bitfields to represent small boolean
+vectors can dramatically speed up programs, often by
+two orders of magnitude.
 
 Implementing the remaining bits of the solution is annoying
 but not too bad.  We need a way to identify each of the
@@ -163,4 +177,78 @@ for brevity.  I also write a similar array that gives a
 triple for each triangle, where the components of the triple
 are the edge numbers for that triangle.
 
+To execute the first moves of the game, we can add iterative
+code that reads the vertex numbers, calculates the appropriate
+edge number, sets the appropriate bits, and keeps track of the score
+and current player.  But the actual game logic is already
+embedded in our search routine, so there's no need to replicate
+it.  Instead, we create a simple integer array called forced_moves
+that holds the sequence of edges that begin the game.  We add
+a parameter to our recursive search routine that says what move
+number we are on.  And, in our search routine, we add a line
+such as this to exclude non-matching moves at that level:
 
+    if (movenum < forcedmoves.length &&
+        currentedge != forcedmoves[movenum])
+       continue ;
+
+This trick can greatly simplify tree search where the first
+part of the path down the tree is forced.
+
+All of this goes together pretty easily; the sample Java code
+is in the file dottri.java.  When we compile and run the code
+on the sample data, we find it takes slightly over a minute
+to run, which is too long.
+
+#### Speeding up the Solution: Memoization
+
+So far we've used brute force to evaluate the search tree.
+But if we think about it, our search tree is not exactly a tree;
+indeed, it is a DAG (directed acyclic graph) because there
+are multiple ways to attain most board positions.  The edges
+can be chosen in any particular order.  Our current code
+re-evaluates identical board positions over and over, and this
+makes it slow.  To fix this problem, all we need to do is
+add a cache that remembers the result of evaluating a particular
+board position, and if we encounter that same board position
+again, we return the result from the cache rather than
+reevaluating it.  This trick is called memoization (not a
+typo).
+
+Our board position is represented as an integer bit field with
+at most 18 bits set.  If our edges are numbered compactly from
+zero, then the maximum value this position integer can take is
+2^18-1 or 262,143, a small number.  We create an integer array
+of this size, and initialize it to some marker (sentinel) value
+that is not a legal score (say, -1000).
+
+Then, to our recursive routine, we add this code to the top of
+the routine:
+
+    if (cache[board] != SENTINEL)
+       return cache[board] ;
+
+and to the end of the routine we add this, right before returning
+the result:
+
+    cache[board] = r ;
+
+We need to re-initialize the cache for each example, since the
+forced moves change the search tree.  With this change our run
+time decreases from e! (where there are e edges available in a
+given position) to 2^e (here e is the number of edges on the
+board); this is from half a billion to a quarter million, a huge
+improvement.
+
+The resulting code is in dottri2.java; executing it on our
+sample input takes less than a fifth of a second, for a speedup
+of about 500.
+
+The problem statement does not say how many game positions there
+will be, and our new code does not reuse the cache since it is
+affected by those initial moves.  If there were many thousands of
+game positions, this memoized version might be too slow.  This
+can easily be fixed by not using the cache for levels of the tree
+that are have forced moves.
+
+#### Speeding up the Solution: Dynamic Programming
