@@ -14,7 +14,7 @@ of study.  One of the country's leading mathematicians,
 [deep and popular
 book](https://www.amazon.com/Dots-Boxes-Game-Elwyn-Berlekamp/dp/1568811292)
 on the game, and the game is often played
-at some mathematics conferences between top mathemticians.
+at some mathematics conferences between top mathematicians.
 
 Before trying this as a
 programming challenge, try playing it against your neighbor,
@@ -105,6 +105,12 @@ This code assumes some abstract representation of the
 board, and utility routines to update the board position with
 a new edge and to calculate the number of new triangles
 created by a particular move.
+
+The result is dependent only on the arguments, and it contains
+tests for a base case, and recursive calls; this is a
+mathematical formulation, with no side effects.  More
+concretely, this is a pure function.  This can make
+reasoning about the program much easier.
 
 At each level, the "ply" of the search tree (the number
 of children nodes that need to be explored) is the number
@@ -233,6 +239,10 @@ the result:
 
     cache[board] = r ;
 
+With memoization it's important that the function being memoized
+is a pure function, independent of side effects and dependent
+only on its arguments.
+
 We need to re-initialize the cache for each example, since the
 forced moves change the search tree.  With this change our run
 time decreases from e! (where there are e edges available in a
@@ -252,3 +262,76 @@ can easily be fixed by not using the cache for levels of the tree
 that are have forced moves.
 
 #### Speeding up the Solution: Dynamic Programming
+
+In the memoized recursive solution, we needed code to check the
+cache and fill the caache.  Another approach based on ordering
+the state space can speed the program up a lot, and solve other
+problems that might occur with memoized recursion, such as
+stack exhaustion.
+
+Remember, we memoized a pure function.  The range of values of
+the arguments of the function is called the state space.  If we
+can make an assertion about the state space, such that the
+recursive calls always explore a state that is less than
+(for some definition of less than) the arguments of the outer
+call, then we can order the state space by that predicate.
+In this case, recursive calls always have more bits set (because
+more edges are marked) than the outer call; indeed, the
+recursive calls always have a greater state value than the
+outer call.  Thus, by evaluating the nodes from the highest
+state value to the least, we always know our recursive values
+have already been calculated and are ready in the cache.
+
+We can therefore replace the recursive call with an
+iterative one, filling the cache with calculated values from
+2^18-1 down to 0.  The code in dottri4.java shows this.
+By convention dynamic programming solutions use an array
+called dp to store the cached results.
+
+For this particular problem, removing the recursion complicates
+the code a tiny bit, because now we need to manage the
+initial moves from the input file separately; there's no
+easy way to integrate them into the iteration for states.
+
+In many cases, with dynamic programming, you can actually
+order the state space exploration and storage such that the
+amount of memory required is significantly reduced.  That's
+not trivially the case here, but for many state spaces that
+are described by two ordinal values, you often need store only
+a single row of the state space, rather than the entire
+two-dimensional array.  With memoization it can be much
+more difficult to determine when storage can be reclaimed.
+
+#### Recursion vs. Memoization vs. Dynamic Programming
+
+So when should you use plain recursion, or memoized recursion,
+or dynamic programming?  Here are some features of each that
+should be kept in mind.
+
+* Plain old recursion can be very fast, especially if you
+suspect that not much of the state space need be explored
+to solve a particular problem.  Very frequently you should
+start by writing the simplest recursive formulation of the
+problem and just see if it works; often that will be all you
+need to do.
+
+* Memoized recursion works great if you know the depth of
+the search tree is bounded (typical stack sizes permit
+recursion thousands of levels deep but not millions of
+levels deep).  Debugging very deep stack traces can be
+painful.  Memoized recursion also explores only that part
+of the state space required, where dynamic programming usually fills
+the entire state space.  Memoized recursion has overhead in
+checking the cache for valid values and in building and
+destroying stack frames.  Memoized recursion works best if
+the entire needed state space fits in memory; it is possible to
+clear or use a bounded memoization cache if memory is tight, but
+this can lead to exponential slowdown.
+
+* Dynamic programming is great if you suspect you will need to
+explore the entire state space, and if you can come up with a
+reasonable way to order the state space so that subproblem
+results will be available before the outer problem.  Dynamic
+programming has no function call overhead, no cache checck
+overhead, and can often be made extremely memory-efficient.
+And it will never blow your stack.
