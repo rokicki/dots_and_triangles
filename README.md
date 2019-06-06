@@ -338,7 +338,7 @@ And it will never blow your stack.
 
 #### Try the game yourself!
 
-I've put a simple [JavaScript version of this
+I've put up a simple [JavaScript version of this
 game](https://tomas.rokicki.com/dottri.html) if you want to
 try to beat the computer.  It's harder than it looks!
 
