@@ -44,8 +44,8 @@ row of triangles, the second row.
      . . . . . .
     7---8---9--10
 
-Now you can take five triangles, but then you have to give
-seven back, losing the game:
+Now you can take three triangles, but then you have to give
+five back, losing the game:
 
           1
          /B\
