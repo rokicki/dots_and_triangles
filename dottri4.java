@@ -26,7 +26,8 @@ public class dottri4 {
    }
    static int dp[] ;
    static void iterate() {
-      for (int board=(1<<EDGECOUNT-1); board>=0; board--) {
+      dp[(1<<EDGECOUNT)-1] = 0 ;
+      for (int board=((1<<EDGECOUNT)-2); board>=0; board--) {
          int r = SENTINEL ;
          for (int e=0; e<EDGECOUNT; e++) {
             if (0 != ((board >> e) & 1))
