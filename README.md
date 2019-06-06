@@ -335,3 +335,10 @@ results will be available before the outer problem.  Dynamic
 programming has no function call overhead, no cache checck
 overhead, and can often be made extremely memory-efficient.
 And it will never blow your stack.
+
+#### Try the game yourself!
+
+I've put a simple [JavaScript version of this
+game](https://tomas.rokicki.com/dottri.html) if you want to
+try to beat the computer.  It's harder than it looks!
+
