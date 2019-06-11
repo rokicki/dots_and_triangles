@@ -30,6 +30,7 @@ var xc = [] ;
 var yc = [] ;
 var owner = [] ;
 var board = 0 ;
+var lastc = 0 ;
 function deltascore(b1, b2) {
    var r = 0 ;
    for (var i=0; i<9; i++) {
@@ -87,7 +88,11 @@ function redraw() {
       ctx.lineTo((w-2*b)*xc[v2], (h-2*b)*yc[v2]) ;
       ctx.closePath() ;
       if ((board >> i) & 1) {
-         ctx.strokeStyle = "#000000" ;
+         if ((lastc >> i) & 1) {
+            ctx.strokeStyle = "#ff0000" ;
+         } else {
+            ctx.strokeStyle = "#000000" ;
+         }
       } else {
          ctx.strokeStyle = "#dddddd" ;
       }
@@ -176,6 +181,7 @@ function mouseclick(e) {
 function domove(ed) {
    var nboard ;
    var ds = 0 ;
+   lastc = 0 ;
    if (ed >= 0) {
       nboard = board | (1 << ed) ;
       ds = owntriangles(board, nboard, 'H') ;
@@ -214,6 +220,7 @@ function domove(ed) {
          noticemove('C', t, ds) ;
          score -= ds ;
          board = nboard ;
+         lastc |= (1 << t) ;
          if (ds == 0)
             break ;
       }
