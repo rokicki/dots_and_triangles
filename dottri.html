@@ -21,6 +21,10 @@ var edges = [
 var triangle_edges = [
    0,1,4, 2,3,9, 5,6,12, 7,8,15, 3,4,5, 10,11,16, 13,14,17, 8,9,10, 11,12,13
 ] ;
+function noticemove(who, e, tri) {
+   console.log("Move by " + who + " edge " + e + " between vertex " +
+               edges[3*e] + " and " + edges[3*e+1] + " scoring " + tri) ;
+}
 var triangles = [] ;
 var xc = [] ;
 var yc = [] ;
@@ -156,6 +160,7 @@ function mouse(e, click) {
    }
    if (ed < 0 || dd > w / 3 || (board >> ed) & 1) {
       if (board == 0 && x >= 2*w/3 && y <= h/3) {
+         console.log("Human passes.") ;
          doclick(-1) ; // pass move
       } else {
          // nothing
@@ -174,6 +179,7 @@ function domove(ed) {
    if (ed >= 0) {
       nboard = board | (1 << ed) ;
       ds = owntriangles(board, nboard, 'H') ;
+      noticemove('H', ed, ds) ;
       board = nboard ;
       score += ds ;
    }
@@ -205,6 +211,7 @@ function domove(ed) {
          }
          nboard = board | (1 << t) ;
          ds = owntriangles(board, nboard, 'C') ;
+         noticemove('C', t, ds) ;
          score -= ds ;
          board = nboard ;
          if (ds == 0)
@@ -217,6 +224,7 @@ function doclick(ed) {
    update() ;
 }
 function startgame() {
+   console.log("New game.") ;
    board = 0 ;
    owner = new Array(9) ;
    score = 0 ;
